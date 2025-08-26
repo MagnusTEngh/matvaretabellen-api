@@ -48,16 +48,54 @@ def get_foods():
         )
 
 
-def get_food_groups(): ...
+def get_food_groups():
+    url = "https://www.matvaretabellen.no/api/nb/food-groups.json"
+    response = send_request(url)
+    for food_group in response.json()["foodGroups"]:
+        file_name = f"{food_group['name'].lower()}.json"
+        save_to_json(
+            thing=food_group,
+            location="data",
+            folder="food_group",
+            file_name=file_name,
+        )
 
 
-def get_nutrients(): ...
+def get_nutrients():
+    url = "https://www.matvaretabellen.no/api/nb/nutrients.json"
+    response = send_request(url)
+    for nutrient in response.json()["nutrients"]:
+        file_name = f"{nutrient['name'].lower()}.json"
+        save_to_json(
+            thing=nutrient,
+            location="data",
+            folder="nutrients",
+            file_name=file_name,
+        )
 
 
-def get_langual(): ...
+def get_langual():
+    url = "https://www.matvaretabellen.no/api/langual.json"
+    response = send_request(url)
+    save_to_json(
+        thing=response.json()["codes"],
+        location="data",
+        folder="langual",
+        file_name="langual.json",
+    )
 
 
-def get_sources(): ...
+def get_sources():
+    url = "https://www.matvaretabellen.no/api/nb/sources.json"
+    response = send_request(url)
+    for source in response.json()["sources"]:
+        file_name = f"{source['sourceId']}.json"
+        save_to_json(
+            thing=source,
+            location="data",
+            folder="sources",
+            file_name=file_name,
+        )
 
 
 def send_request(url):
@@ -70,5 +108,13 @@ def send_request(url):
         logger.warning(f"Response from {url}: {response.status_code}")
 
 
-if __name__ == "__main__":
+def main():
     get_foods()
+    get_food_groups()
+    get_nutrients()
+    get_langual()
+    get_sources()
+
+
+if __name__ == "__main__":
+    main()
