@@ -13,8 +13,12 @@ logging.basicConfig(format="%(asctime)s %(levelname)s %(name)s %(message)s")
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
+URL_BASE = "https://www.matvaretabellen.no/api"
 
-def save_to_json(thing: dict, location: str, folder: str, file_name: str):
+
+def save_to_json(
+    thing: dict, location: str, folder: str, file_name: str, language: str
+):
     """Saves a dict as a json file
 
     thing: Thing to save as json file.
@@ -28,15 +32,17 @@ def save_to_json(thing: dict, location: str, folder: str, file_name: str):
         raise ValueError("folder can not end with '/'.")
     if not file_name.endswith(".json"):
         raise ValueError("file_name must end with '.json'")
-    directory = Path(location) / folder
+    directory = Path(location) / language / folder
     if not directory.exists():
         directory.mkdir(parents=True)
-    with open(f"{location}/{folder}/{file_name}", "w", encoding="utf-8") as file:
+    with open(
+        f"{location}/{language}/{folder}/{file_name}", "w", encoding="utf-8"
+    ) as file:
         json.dump(thing, file, ensure_ascii=False, indent=4)
 
 
-def get_foods():
-    url = "https://www.matvaretabellen.no/api/nb/foods.json"
+def get_foods(language):
+    url = f"{URL_BASE}/{language}/foods.json"
     response = send_request(url)
     for food_item in response.json()["foods"]:
         food_name = food_item["uri"].split("/")[-2]
@@ -45,11 +51,12 @@ def get_foods():
             location="data",
             folder="food",
             file_name=f"{food_name}.json",
+            language=language,
         )
 
 
-def get_food_groups():
-    url = "https://www.matvaretabellen.no/api/nb/food-groups.json"
+def get_food_groups(language):
+    url = f"{URL_BASE}/{language}/food-groups.json"
     response = send_request(url)
     for food_group in response.json()["foodGroups"]:
         file_name = f"{food_group['name'].lower()}.json"
@@ -58,11 +65,12 @@ def get_food_groups():
             location="data",
             folder="food_group",
             file_name=file_name,
+            language=language,
         )
 
 
-def get_nutrients():
-    url = "https://www.matvaretabellen.no/api/nb/nutrients.json"
+def get_nutrients(language):
+    url = f"{URL_BASE}/{language}/nutrients.json"
     response = send_request(url)
     for nutrient in response.json()["nutrients"]:
         file_name = f"{nutrient['name'].lower()}.json"
@@ -71,22 +79,24 @@ def get_nutrients():
             location="data",
             folder="nutrients",
             file_name=file_name,
+            language=language,
         )
 
 
-def get_langual():
-    url = "https://www.matvaretabellen.no/api/langual.json"
+def get_langual(language):
+    url = f"{URL_BASE}/langual.json"
     response = send_request(url)
     save_to_json(
         thing=response.json()["codes"],
         location="data",
         folder="langual",
         file_name="langual.json",
+        language=language,
     )
 
 
-def get_sources():
-    url = "https://www.matvaretabellen.no/api/nb/sources.json"
+def get_sources(language):
+    url = f"{URL_BASE}/{language}/sources.json"
     response = send_request(url)
     for source in response.json()["sources"]:
         file_name = f"{source['sourceId']}.json"
@@ -95,6 +105,7 @@ def get_sources():
             location="data",
             folder="sources",
             file_name=file_name,
+            language=language,
         )
 
 
@@ -109,11 +120,13 @@ def send_request(url):
 
 
 def main():
-    get_foods()
-    get_food_groups()
-    get_nutrients()
-    get_langual()
-    get_sources()
+    languages = ["nb", "en"]
+    for language in languages:
+        get_foods(language)
+        get_food_groups(language)
+        get_nutrients(language)
+        get_langual(language)
+        get_sources(language)
 
 
 if __name__ == "__main__":
